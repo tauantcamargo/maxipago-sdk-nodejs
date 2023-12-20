@@ -16,18 +16,18 @@ class MaxiPagoSDK {
 
   private readonly POST_API =
     this.env === 'development'
-      ? 'https://testapi.maxipago.net/UniversalAPI/postAPI'
-      : 'https://api.maxipago.net/UniversalAPI/postAPI';
+      ? `${process.env.BASE_URL}/UniversalAPI/postAPI`
+      : `${process.env.BASE_URL_PROD}/UniversalAPI/postAPI`;
 
   private readonly POST_XML =
     this.env === 'development'
-      ? 'https://testapi.maxipago.net/UniversalAPI/postXML'
-      : 'https://api.maxipago.net/UniversalAPI/postXML';
+      ? `${process.env.BASE_URL}/UniversalAPI/postXML`
+      : `${process.env.BASE_URL_PROD}/UniversalAPI/postXML`;
 
   private readonly REPORTS_API =
     this.env === 'development'
-      ? 'https://testapi.maxipago.net/ReportsAPI/servlet/ReportsAPI'
-      : 'https://api.maxipago.net/ReportsAPI/servlet/ReportsAPI';
+      ? `${process.env.BASE_URL}/ReportsAPI/servlet/ReportsAPI`
+      : `${process.env.BASE_URL_PROD}/ReportsAPI/servlet/ReportsAPI`;
 
   private readonly XML_OPTIONS: Options = {
     explicitRoot: false,

@@ -1,52 +1,48 @@
 import { xml2json, Options } from 'xml-js';
+import { match, P } from 'ts-pattern';
 
 const isDebug = process.env.NODE_ENV === 'development';
 
 export const convertResponse = (value: any, parentElement: any) => {
+  if (!parentElement || !parentElement._parent) {
+    console.error('Invalid parentElement provided.');
+    return;
+  }
+
   try {
-    const keyNo = Object.keys(parentElement._parent).length;
-    const keyName = Object.keys(parentElement._parent)[keyNo - 1];
+    const parentKeys = Object.keys(parentElement._parent);
+    if (parentKeys.length === 0) {
+      console.error('Parent element has no properties.');
+      return;
+    }
+
+    const keyName = parentKeys[parentKeys.length - 1];
     parentElement._parent[keyName] = nativeType(value);
   } catch (e) {
-    console.log(e);
+    console.error('Error in convertResponse:', e);
   }
 };
 
 export const formatResponse = (xml: string, options: Options.XML2JSON) => {
-  xml = xml.replace('rapi-response', 'response');
-  xml = xml.replace('rapi-response', 'response');
-  xml = xml.replace('api-response', 'response');
-  xml = xml.replace('api-response', 'response');
-  xml = xml.replace('transaction-response', 'response');
-  xml = xml.replace('transaction-response', 'response');
+  xml = xml.replace(/(rapi|api|transaction)-response/g, 'response');
 
   const jsonResponse = JSON.parse(xml2json(xml, options));
 
-  if (isDebug) {
-    console.log('development mode');
-    console.log(xml);
-  } else {
-    console.log('production mode');
-    console.log(xml);
-  }
+  console.log(isDebug ? 'development mode' : 'production mode');
+  console.log(xml);
 
-  if (typeof jsonResponse.response !== 'undefined') {
-    return jsonResponse.response;
-  } else {
-    return JSON.parse(xml2json(xml, options));
-  }
+  return jsonResponse.response ?? JSON.parse(xml2json(xml, options));
 };
 
-function nativeType(value: any) {
-  const nValue = Number(value);
-  if (!isNaN(nValue)) {
-    return nValue;
-  }
-  const bValue = value.toLowerCase();
-  if (bValue === 'true') {
-    return true;
-  } else if (bValue === 'false') {
-    return false;
-  }
-  return value;
+function nativeType(value: string | number) {
+  return match(value)
+    .with(P.string, n => {
+      const lowerCaseValue = n.toLowerCase();
+      return match(lowerCaseValue)
+        .with('true', () => true)
+        .with('false', () => false)
+        .otherwise(() => n);
+    })
+    .with(P.number, n => Number(n))
+    .otherwise(() => value);
 }
